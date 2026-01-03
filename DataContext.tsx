@@ -7,6 +7,7 @@ interface DataContextType {
   transactions: Transaction[];
   notifications: Notification[];
   categories: Category[];
+  initialBalance: number;
   balance: number;
   income: number;
   expense: number;
@@ -25,6 +26,7 @@ export const DataContext = createContext<DataContextType>({
   isAuthenticated: false,
   transactions: [],
   notifications: [],
+  initialBalance: 0,
   balance: 0,
   income: 0,
   expense: 0,

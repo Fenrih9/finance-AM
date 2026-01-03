@@ -10,7 +10,7 @@ interface AnalyticsProps {
 }
 
 export const AnalyticsScreen: React.FC<AnalyticsProps> = ({ onBack }) => {
-  const { income, expense, transactions, deleteTransaction } = useData();
+  const { income, expense, transactions, deleteTransaction, balance } = useData();
   const [timeFilter, setTimeFilter] = useState<'6months' | 'year'>('6months');
 
   // --- Processamento de Dados para Fluxo de Caixa (Dinâmico) ---
@@ -114,7 +114,7 @@ export const AnalyticsScreen: React.FC<AnalyticsProps> = ({ onBack }) => {
     doc.setFontSize(10);
     doc.text(`Receitas: ${formatMoney(income)}`, 19, 58);
     doc.text(`Despesas: ${formatMoney(expense)}`, 80, 58);
-    doc.text(`Balanço: ${formatMoney(income - expense)}`, 140, 58);
+    doc.text(`Saldo: ${formatMoney(balance)}`, 140, 58);
 
     // Transactions Table
     const tableData = transactions.map(t => [

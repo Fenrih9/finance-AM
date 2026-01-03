@@ -10,7 +10,7 @@ interface HomeProps {
 
 export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
   const { isPrivacyMode, togglePrivacyMode } = useTheme();
-  const { user, balance, income, expense, notifications, transactions } = useData();
+  const { user, balance, income, expense, notifications, transactions, initialBalance } = useData();
 
   // Helper to format currency
   const formatMoney = (val: number) => {
@@ -32,7 +32,7 @@ export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
     });
 
     // Calculate cumulative balance evolution for the year
-    let runningTotal = 0;
+    let runningTotal = initialBalance || 0;
     return monthNames.map((name, index) => {
       runningTotal += monthlyNet[index];
       return { name, value: runningTotal };

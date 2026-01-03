@@ -208,7 +208,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .filter(t => t.type === 'expense')
         .reduce((acc, t) => acc + t.amount, 0);
 
-    const balance = income - expense;
+    // Initial Balance Configuration
+    const INITIAL_BALANCE = 56925.05;
+
+    const balance = income - expense + INITIAL_BALANCE;
 
     return (
         <DataContext.Provider value={{
@@ -216,6 +219,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             isAuthenticated,
             transactions,
             notifications,
+            initialBalance: INITIAL_BALANCE,
             balance,
             income,
             expense,
