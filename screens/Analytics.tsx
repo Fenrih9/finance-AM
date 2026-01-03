@@ -64,7 +64,7 @@ export const AnalyticsScreen: React.FC<AnalyticsProps> = ({ onBack }) => {
         categoryMap[catName] = (categoryMap[catName] || 0) + t.amount;
       });
 
-    const COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#6366f1'];
+    const COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#1d4ed8', '#8b5cf6', '#ec4899', '#6366f1'];
 
     let data = Object.keys(categoryMap).map((cat, index) => ({
       name: cat,
@@ -209,8 +209,8 @@ export const AnalyticsScreen: React.FC<AnalyticsProps> = ({ onBack }) => {
                   itemStyle={{ fontSize: '12px' }}
                   formatter={(value: number) => [formatMoney(value), '']}
                 />
-                <Bar dataKey="income" name="Receita" stackId="a" fill="#10B981" radius={[0, 0, 4, 4]} />
-                <Bar dataKey="expense" name="Despesa" stackId="b" fill="#ff6b6b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="income" name="Receita" stackId="a" fill="#3b82f6" radius={[0, 0, 4, 4]} />
+                <Bar dataKey="expense" name="Despesa" stackId="b" fill="#ef4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
             <div className="flex justify-between px-2 mt-2">

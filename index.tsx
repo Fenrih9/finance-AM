@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ThemeProvider } from './ThemeContext';
-import { DataProvider } from './DataContext';
+import { DataProvider } from './DataProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

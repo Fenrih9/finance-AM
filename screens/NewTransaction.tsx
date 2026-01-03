@@ -128,7 +128,7 @@ export const NewTransactionScreen: React.FC<NewTransactionProps> = ({ onBack }) 
             <span className={`text-sm ${type === 'income' ? 'font-bold text-income' : 'font-medium text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'} transition-colors`}>
               Receita
             </span>
-            <div className={`absolute bottom-0 w-full h-[3px] rounded-t-full transition-all ${type === 'income' ? 'bg-income shadow-[0_-2px_8px_rgba(16,185,129,0.4)]' : 'bg-transparent'}`}></div>
+            <div className={`absolute bottom-0 w-full h-[3px] rounded-t-full transition-all ${type === 'income' ? 'bg-income shadow-[0_-2px_8px_rgba(59,130,246,0.4)]' : 'bg-transparent'}`}></div>
           </button>
 
           {/* Despesa Tab */}

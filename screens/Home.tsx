@@ -103,7 +103,7 @@ export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
               </span>
             </button>
           </div>
-          <h1 className="font-display text-4xl font-bold tracking-tight mt-1">
+          <h1 className={`font-display text-4xl font-bold tracking-tight mt-1 ${balance < 0 ? 'text-expense' : 'text-white'}`}>
             {isPrivacyMode ? (
               <span className="tracking-widest">R$ ••••••</span>
             ) : (
@@ -145,7 +145,7 @@ export const HomeScreen: React.FC<HomeProps> = ({ onNavigate }) => {
             <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
           </div>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Balanço</p>
-          <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+          <p className={`text-sm font-bold mt-0.5 ${balance < 0 ? 'text-expense' : 'text-slate-900 dark:text-white'}`}>
             {isPrivacyMode ? '•••••' : formatMoney(balance)}
           </p>
         </div>

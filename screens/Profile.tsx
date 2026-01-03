@@ -350,7 +350,7 @@ export const ProfileScreen: React.FC<ProfileProps> = ({ onBack }) => {
                   </button>
                   <button
                     onClick={() => setNewCategoryType('income')}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${newCategoryType === 'income' ? 'bg-green-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}`}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${newCategoryType === 'income' ? 'bg-income text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}`}
                   >
                     Receita
                   </button>
@@ -385,7 +385,7 @@ export const ProfileScreen: React.FC<ProfileProps> = ({ onBack }) => {
                     categories.map(cat => (
                       <div key={cat.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-700/50">
                         <div className="flex items-center gap-3">
-                          <div className={`w-2 h-8 rounded-full ${cat.type === 'expense' ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                          <div className={`w-2 h-8 rounded-full ${cat.type === 'expense' ? 'bg-red-500' : 'bg-income'}`}></div>
                           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{cat.name}</span>
                         </div>
                         <button
