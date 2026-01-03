@@ -196,23 +196,30 @@ export const NewTransactionScreen: React.FC<NewTransactionProps> = ({ onBack }) 
 
             <div className="grid grid-cols-2 gap-4">
               {/* Category Dropdown (Simple Text Input for now or Select) */}
-              <div className="group col-span-2 sm:col-span-1">
+              <div className="group col-span-2 sm:col-span-1 relative">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 ml-1">Categoria</label>
-                <div className="flex items-center bg-background-light dark:bg-background-dark/50 rounded-xl px-4 py-1 border border-transparent focus-within:border-primary/50 transition-all relative">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mr-2 text-slate-500 dark:text-slate-300 shrink-0">
-                    <span className="material-symbols-outlined text-lg">category</span>
+                <div className="relative">
+                  <div className="flex items-center bg-background-light dark:bg-background-dark/50 rounded-xl px-4 py-3 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mr-3 text-slate-500 dark:text-slate-300 shrink-0">
+                      <span className="material-symbols-outlined text-lg">category</span>
+                    </div>
+                    <span className={`text-base font-medium flex-1 truncate ${category ? 'text-slate-800 dark:text-white' : 'text-slate-500'}`}>
+                      {category || 'Selecione...'}
+                    </span>
+                    <span className="material-symbols-outlined text-slate-400">expand_more</span>
                   </div>
                   <select
-                    className="w-full bg-transparent border-none focus:ring-0 text-slate-800 dark:text-white py-3 text-base font-medium outline-none appearance-none"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                   >
-                    <option value="" className="text-slate-500 bg-white dark:bg-surface-dark">Selecione...</option>
+                    <option value="" disabled>Selecione...</option>
                     {categories.filter(c => c.type === type).map(c => (
-                      <option key={c.id} value={c.name} className="text-slate-800 dark:text-white bg-white dark:bg-surface-dark">{c.name}</option>
+                      <option key={c.id} value={c.name} className="text-slate-800 dark:text-white bg-white dark:bg-surface-dark">
+                        {c.name}
+                      </option>
                     ))}
                   </select>
-                  <span className="material-symbols-outlined absolute right-4 text-slate-400 pointer-events-none">expand_more</span>
                 </div>
               </div>
 
