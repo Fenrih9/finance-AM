@@ -183,9 +183,9 @@ export const AnalyticsScreen: React.FC<AnalyticsProps> = ({ onBack }) => {
             <p className="text-2xl font-bold text-gray-900 dark:text-white relative z-10">{formatMoney(income)}</p>
           </div>
           <div className="rounded-3xl bg-white dark:bg-surface-dark p-5 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-secondary/5 rounded-bl-full -mr-4 -mt-4 group-hover:bg-secondary/10 transition-colors"></div>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-expense/5 rounded-bl-full -mr-4 -mt-4 group-hover:bg-expense/10 transition-colors"></div>
             <div className="flex items-center gap-2 mb-3 relative z-10">
-              <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+              <div className="w-8 h-8 rounded-full bg-expense/10 flex items-center justify-center text-expense">
                 <span className="material-symbols-outlined text-lg">trending_down</span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Despesas</p>
@@ -286,7 +286,7 @@ export const AnalyticsScreen: React.FC<AnalyticsProps> = ({ onBack }) => {
               transactions.map((t) => (
                 <div key={t.id} className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-surface-dark border border-gray-100 dark:border-white/5 shadow-sm group">
                   <div className="flex items-center gap-4">
-                    <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${t.type === 'expense' ? 'bg-secondary/10 text-secondary' : 'bg-primary/10 text-primary'}`}>
+                    <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${t.type === 'expense' ? 'bg-expense/10 text-expense' : 'bg-income/10 text-income'}`}>
                       <span className="material-symbols-outlined">{t.type === 'expense' ? 'shopping_cart' : 'work'}</span>
                     </div>
                     <div className="flex flex-col">
@@ -295,7 +295,7 @@ export const AnalyticsScreen: React.FC<AnalyticsProps> = ({ onBack }) => {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <p className={`text-sm font-bold ${t.type === 'expense' ? 'text-secondary' : 'text-primary'}`}>
+                    <p className={`text-sm font-bold ${t.type === 'expense' ? 'text-expense' : 'text-income'}`}>
                       {t.type === 'expense' ? '-' : '+'} {formatMoney(t.amount)}
                     </p>
                     <button
