@@ -18,11 +18,13 @@ const WALLPAPERS = [
 
 export const ProfileScreen: React.FC<ProfileProps> = ({ onBack }) => {
   const { wallpaper, setWallpaper, isPrivacyMode, togglePrivacyMode, theme, toggleTheme } = useTheme();
-  const { user, income, logout, categories, addCategory, deleteCategory } = useData();
+  const { user, income, logout, categories, addCategory, deleteCategory, updateUser } = useData();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isCategoryModalOpen, setCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryType, setNewCategoryType] = useState<'income' | 'expense'>('expense');
+  const [isPersonalDataModalOpen, setPersonalDataModalOpen] = useState(false);
+  const [tempName, setTempName] = useState(user.name);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Empty contribution data since mocks are removed
@@ -170,7 +172,13 @@ export const ProfileScreen: React.FC<ProfileProps> = ({ onBack }) => {
               </button>
             </div>
 
-            <button className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group border-b border-slate-100 dark:border-slate-700/50">
+            <button
+              onClick={() => {
+                setTempName(user.name);
+                setPersonalDataModalOpen(true);
+              }}
+              className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group border-b border-slate-100 dark:border-slate-700/50"
+            >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
                   <span className="material-symbols-outlined">person</span>
@@ -403,6 +411,59 @@ export const ProfileScreen: React.FC<ProfileProps> = ({ onBack }) => {
           </div>
         )
       }
-    </div >
+      {/* Personal Data Modal */}
+      {
+        isPersonalDataModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="w-full max-w-sm bg-white dark:bg-[#1a2632] rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-5 duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Dados Pessoais</h2>
+                <button
+                  onClick={() => setPersonalDataModalOpen(false)}
+                  className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-xl">close</span>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Nome</label>
+                  <input
+                    type="text"
+                    value={tempName}
+                    onChange={(e) => setTempName(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-800 dark:text-white outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
+                  <input
+                    type="email"
+                    value={user.email}
+                    disabled
+                    className="w-full bg-slate-100 dark:bg-slate-800/20 border border-transparent rounded-xl px-4 py-3 text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                  />
+                  <p className="text-[10px] text-slate-400 px-1">O email não pode ser alterado.</p>
+                </div>
+
+                <button
+                  onClick={async () => {
+                    if (tempName.trim()) {
+                      await updateUser({ name: tempName });
+                      setPersonalDataModalOpen(false);
+                    }
+                  }}
+                  className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all mt-4"
+                >
+                  Salvar Alterações
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div>
   );
 };
