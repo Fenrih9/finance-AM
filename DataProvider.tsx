@@ -185,15 +185,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     updates.name = sanitizedName;
                 }
 
-                if (u.avatar) {
+                // Check if avatar property exists (not just truthy) to allow null
+                if ('avatar' in u) {
                     updates.avatar = u.avatar;
                 }
 
                 // Update Firebase Auth profile
-                if (updates.name || updates.avatar) {
+                if (updates.name || 'avatar' in updates) {
                     await updateProfile(auth.currentUser, {
                         displayName: updates.name || auth.currentUser.displayName,
-                        photoURL: updates.avatar || auth.currentUser.photoURL
+                        photoURL: updates.avatar !== undefined ? updates.avatar : auth.currentUser.photoURL
                     });
                 }
 

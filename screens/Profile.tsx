@@ -26,6 +26,7 @@ export const ProfileScreen: React.FC<ProfileProps> = ({ onBack }) => {
   const [isPersonalDataModalOpen, setPersonalDataModalOpen] = useState(false);
   const [tempName, setTempName] = useState(user.name);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const profilePhotoInputRef = useRef<HTMLInputElement>(null);
 
   // Empty contribution data since mocks are removed
   const contributionData = [
@@ -45,6 +46,25 @@ export const ProfileScreen: React.FC<ProfileProps> = ({ onBack }) => {
 
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleProfilePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateUser({ avatar: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerProfilePhotoUpload = () => {
+    profilePhotoInputRef.current?.click();
+  };
+
+  const removeProfilePhoto = () => {
+    updateUser({ avatar: null });
   };
 
   return (
@@ -269,12 +289,28 @@ export const ProfileScreen: React.FC<ProfileProps> = ({ onBack }) => {
 
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Foto de Perfil</h3>
+
+                {/* Hidden Profile Photo Input */}
+                <input
+                  type="file"
+                  ref={profilePhotoInputRef}
+                  onChange={handleProfilePhotoUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+
                 <div className="flex gap-4">
-                  <button className="flex-1 bg-primary text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition-transform flex items-center justify-center gap-2">
+                  <button
+                    onClick={triggerProfilePhotoUpload}
+                    className="flex-1 bg-primary text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition-transform flex items-center justify-center gap-2"
+                  >
                     <span className="material-symbols-outlined">upload</span>
                     Alterar Foto
                   </button>
-                  <button className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-500 hover:text-danger hover:bg-danger/10 transition-colors">
+                  <button
+                    onClick={removeProfilePhoto}
+                    className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-500 hover:text-danger hover:bg-danger/10 transition-colors"
+                  >
                     <span className="material-symbols-outlined">delete</span>
                   </button>
                 </div>
