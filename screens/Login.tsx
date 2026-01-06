@@ -14,6 +14,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onNavigate }) => {
   const [password, setPassword] = useState('');
   const [saveInfo, setSaveInfo] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,13 +107,23 @@ export const LoginScreen: React.FC<LoginProps> = ({ onNavigate }) => {
                   <span className="material-symbols-outlined">lock</span>
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="block w-full rounded-2xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 py-3.5 pl-10 text-slate-900 dark:text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm transition-all shadow-sm"
+                  className="block w-full rounded-2xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 py-3.5 pl-10 pr-10 text-slate-900 dark:text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm transition-all shadow-sm"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-indigo-500 transition-colors"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  <span className="material-symbols-outlined text-xl">
+                    {showPassword ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
               </div>
             </div>
 
