@@ -12,6 +12,21 @@ dist
 dist-ssr
 *.local
 
+# Environment variables and secrets (SECURITY CRITICAL)
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env*.local
+*.env
+
+# Firebase and sensitive configuration
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

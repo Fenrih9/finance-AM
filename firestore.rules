@@ -1,8 +1,129 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // ============================================
+    // SECURITY FUNCTIONS
+    // ============================================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Check if user is trying to create resource with their own userId
+    function isCreatingOwnResource() {
+      return isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Validate transaction data
+    function isValidTransaction() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['userId', 'amount', 'type', 'description', 'category', 'date']) &&
+             data.amount is number &&
+             data.amount > 0 &&
+             data.amount < 1000000000 &&
+             data.type is string &&
+             data.type in ['income', 'expense'] &&
+             data.description is string &&
+             data.description.size() > 0 &&
+             data.description.size() <= 500 &&
+             data.category is string &&
+             data.category.size() > 0 &&
+             data.date is timestamp;
+    }
+    
+    // Validate category data
+    function isValidCategory() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['userId', 'name', 'type', 'color', 'icon']) &&
+             data.name is string &&
+             data.name.size() > 0 &&
+             data.name.size() <= 50 &&
+             data.type is string &&
+             data.type in ['income', 'expense'];
+    }
+    
+    // Rate limiting: prevent too many writes in short time
+    // Note: This is a basic check. For production, use Firebase App Check + Cloud Functions
+    function notTooManyWrites() {
+      // Allow if no previous write or if last write was more than 1 second ago
+      return !('lastWriteTime' in resource.data) || 
+             request.time > resource.data.lastWriteTime + duration.value(1, 's');
+    }
+    
+    // ============================================
+    // TRANSACTIONS COLLECTION
+    // ============================================
+    match /transactions/{transactionId} {
+      // Read: Only owner can read their own transactions
+      allow read: if isAuthenticated() && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Create: Only authenticated users can create transactions for themselves
+      // Must pass validation
+      allow create: if isCreatingOwnResource() && 
+                       isValidTransaction();
+      
+      // Update: Only owner can update their own transactions
+      // Cannot change userId
+      // Must pass validation
+      allow update: if isOwner(resource.data.userId) && 
+                       request.resource.data.userId == resource.data.userId &&
+                       isValidTransaction();
+      
+      // Delete: Only owner can delete their own transactions
+      allow delete: if isOwner(resource.data.userId);
+    }
+    
+    // ============================================
+    // CATEGORIES COLLECTION
+    // ============================================
+    match /categories/{categoryId} {
+      // Read: Only owner can read their own categories
+      allow read: if isAuthenticated() && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Create: Only authenticated users can create categories for themselves
+      // Must pass validation
+      allow create: if isCreatingOwnResource() && 
+                       isValidCategory();
+      
+      // Update: Only owner can update their own categories
+      // Cannot change userId
+      // Must pass validation
+      allow update: if isOwner(resource.data.userId) && 
+                       request.resource.data.userId == resource.data.userId &&
+                       isValidCategory();
+      
+      // Delete: Only owner can delete their own categories
+      allow delete: if isOwner(resource.data.userId);
+    }
+    
+    // ============================================
+    // AUDIT LOGS COLLECTION (Future implementation)
+    // ============================================
+    match /audit_logs/{logId} {
+      // Only allow reading own audit logs
+      allow read: if isAuthenticated() && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Prevent manual creation/modification of audit logs
+      // These should only be created by Cloud Functions
+      allow write: if false;
+    }
+    
+    // ============================================
+    // DEFAULT DENY ALL
+    // Block access to any other collections
+    // ============================================
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

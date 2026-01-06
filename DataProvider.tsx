@@ -2,6 +2,13 @@ import React, { useState, useEffect, ReactNode } from 'react';
 import { Transaction, Notification, UserProfile, Category } from './types';
 import { auth, db } from './firebaseConfig';
 import {
+    validateTransaction,
+    validateCategory,
+    sanitizeInput,
+    formatUserError,
+    validatePassword
+} from './security-utils';
+import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signOut,
@@ -38,10 +45,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     avatar: firebaseUser.photoURL || null
                 });
             } else {
+                // SECURITY: Clear all sensitive data on logout
                 setIsAuthenticated(false);
                 setUser({ name: '', email: '', avatar: null });
                 setTransactions([]);
                 setCategories([]);
+                setNotifications([]);
             }
         });
 
@@ -107,52 +116,131 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     const login = async (email: string, pass: string) => {
-        await signInWithEmailAndPassword(auth, email, pass);
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (error) {
+            // SECURITY: Don't expose technical error details
+            const userMessage = formatUserError(error);
+            throw new Error(userMessage);
+        }
     };
 
     const register = async (name: string, email: string, pass: string) => {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        if (userCredential.user) {
-            await updateProfile(userCredential.user, {
-                displayName: name
-            });
-            // Atualiza estado local imediatamente para refletir o nome
-            setUser(prev => ({ ...prev, name }));
+        try {
+            // SECURITY: Validate password strength before sending to Firebase
+            const passwordValidation = validatePassword(pass);
+            if (!passwordValidation.isValid) {
+                throw new Error(passwordValidation.errors[0]);
+            }
+
+            // SECURITY: Sanitize name input
+            const sanitizedName = sanitizeInput(name);
+            if (!sanitizedName || sanitizedName.length < 2) {
+                throw new Error('Nome inválido');
+            }
+
+            const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+            if (userCredential.user) {
+                await updateProfile(userCredential.user, {
+                    displayName: sanitizedName
+                });
+                setUser(prev => ({ ...prev, name: sanitizedName }));
+            }
+        } catch (error) {
+            // SECURITY: Don't expose technical error details
+            const userMessage = formatUserError(error);
+            throw new Error(userMessage);
         }
     };
 
     const logout = async () => {
-        await signOut(auth);
+        try {
+            // SECURITY: Clear local state before signing out
+            setTransactions([]);
+            setCategories([]);
+            setNotifications([]);
+            await signOut(auth);
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Force clear state even if signOut fails
+            setIsAuthenticated(false);
+            setUser({ name: '', email: '', avatar: null });
+            setTransactions([]);
+            setCategories([]);
+            setNotifications([]);
+        }
     };
 
     const updateUser = async (u: Partial<UserProfile>) => {
         if (auth.currentUser) {
-            // Atualiza perfil no Firebase Auth se houver campos relevantes
-            if (u.name || u.avatar) {
-                await updateProfile(auth.currentUser, {
-                    displayName: u.name || auth.currentUser.displayName,
-                    photoURL: u.avatar || auth.currentUser.photoURL
-                });
+            try {
+                // SECURITY: Sanitize inputs
+                const updates: Partial<UserProfile> = {};
+
+                if (u.name) {
+                    const sanitizedName = sanitizeInput(u.name);
+                    if (sanitizedName.length < 2 || sanitizedName.length > 100) {
+                        throw new Error('Nome inválido');
+                    }
+                    updates.name = sanitizedName;
+                }
+
+                if (u.avatar) {
+                    updates.avatar = u.avatar;
+                }
+
+                // Update Firebase Auth profile
+                if (updates.name || updates.avatar) {
+                    await updateProfile(auth.currentUser, {
+                        displayName: updates.name || auth.currentUser.displayName,
+                        photoURL: updates.avatar || auth.currentUser.photoURL
+                    });
+                }
+
+                setUser(prev => ({ ...prev, ...updates }));
+            } catch (error) {
+                const userMessage = formatUserError(error);
+                throw new Error(userMessage);
             }
-            setUser(prev => ({ ...prev, ...u }));
         }
     };
 
     const addTransaction = async (t: Omit<Transaction, 'id'>) => {
-        if (!auth.currentUser) return;
+        if (!auth.currentUser) {
+            throw new Error('Usuário não autenticado');
+        }
 
         try {
-            await addDoc(collection(db, 'transactions'), {
-                userId: auth.currentUser.uid,
-                ...t,
-                date: Timestamp.fromDate(t.date) // Ensure date is saved as Timestamp
+            // SECURITY: Validate transaction data before sending
+            const validation = validateTransaction({
+                amount: t.amount,
+                description: t.description,
+                type: t.type,
+                category: t.category,
+                date: t.date
             });
 
-            // Notifications are local only for now, or could be another collection
+            if (!validation.isValid) {
+                throw new Error(validation.errors[0]);
+            }
+
+            // SECURITY: Sanitize description
+            const sanitizedDescription = sanitizeInput(t.description);
+
+            await addDoc(collection(db, 'transactions'), {
+                userId: auth.currentUser.uid,
+                amount: t.amount,
+                type: t.type,
+                category: t.category,
+                description: sanitizedDescription,
+                date: Timestamp.fromDate(t.date)
+            });
+
+            // Local notification
             const newNotification: Notification = {
                 id: Math.random().toString(36).substr(2, 9),
                 title: t.type === 'expense' ? 'Despesa Registrada' : 'Receita Recebida',
-                message: `${t.description} de R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} foi adicionado(a).`,
+                message: `${sanitizedDescription} de R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} foi adicionado(a).`,
                 date: new Date(),
                 read: false,
                 type: t.type === 'expense' ? 'alert' : 'success'
@@ -160,42 +248,70 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setNotifications(prev => [newNotification, ...prev]);
 
         } catch (error) {
-            console.error("Error adding transaction: ", error);
-            alert("Erro ao salvar transação. Tente novamente.");
+            // SECURITY: Don't expose technical details
+            const userMessage = formatUserError(error);
+            throw new Error(userMessage);
         }
     };
 
     const deleteTransaction = async (id: string) => {
+        if (!auth.currentUser) {
+            throw new Error('Usuário não autenticado');
+        }
+
         try {
             await deleteDoc(doc(db, 'transactions', id));
         } catch (error) {
-            console.error("Error deleting transaction: ", error);
-            alert("Erro ao excluir transação.");
+            // SECURITY: Don't expose technical details
+            const userMessage = formatUserError(error);
+            throw new Error(userMessage);
         }
     };
 
     const addCategory = async (c: Omit<Category, 'id'>) => {
         if (!auth.currentUser) {
-            alert("Erro: Usuário não autenticado internamente.");
-            return;
+            throw new Error('Usuário não autenticado');
         }
+
         try {
+            // SECURITY: Validate category data
+            const validation = validateCategory({
+                name: c.name,
+                type: c.type
+            });
+
+            if (!validation.isValid) {
+                throw new Error(validation.errors[0]);
+            }
+
+            // SECURITY: Sanitize name
+            const sanitizedName = sanitizeInput(c.name);
+
             await addDoc(collection(db, 'categories'), {
                 userId: auth.currentUser.uid,
-                ...c
+                name: sanitizedName,
+                type: c.type,
+                color: c.color,
+                icon: c.icon
             });
-            alert("Categoria salva com sucesso!");
-        } catch (error: any) {
-            console.error("Error adding category: ", error);
-            alert(`Erro ao salvar categoria: ${error.message || error}`);
+        } catch (error) {
+            // SECURITY: Don't expose technical details
+            const userMessage = formatUserError(error);
+            throw new Error(userMessage);
         }
     };
 
     const deleteCategory = async (id: string) => {
+        if (!auth.currentUser) {
+            throw new Error('Usuário não autenticado');
+        }
+
         try {
             await deleteDoc(doc(db, 'categories', id));
         } catch (error) {
-            console.error("Error deleting category: ", error);
+            // SECURITY: Don't expose technical details
+            const userMessage = formatUserError(error);
+            throw new Error(userMessage);
         }
     };
 

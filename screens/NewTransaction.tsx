@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { Screen } from '../types';
 import { useData } from '../DataContext';
+import { parseAmount, sanitizeInput } from '../security-utils';
 
 interface NewTransactionProps {
   onBack: () => void;
@@ -16,27 +17,50 @@ export const NewTransactionScreen: React.FC<NewTransactionProps> = ({ onBack }) 
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [date, setDate] = useState<Date>(new Date());
+  const [error, setError] = useState('');
 
   // Handle Save
-  const handleSave = () => {
+  const handleSave = async () => {
+    setError('');
+
     if (!amount || !description) {
+      setError('Preencha todos os campos obrigatórios');
       return;
     }
 
-    // Parse amount: support "50,00" -> 50.00
-    const numericAmount = parseFloat(amount.replace(/\./g, '').replace(',', '.'));
+    // SECURITY: Parse and validate amount
+    const numericAmount = parseAmount(amount);
 
-    if (isNaN(numericAmount) || numericAmount <= 0) return;
+    if (numericAmount === null || numericAmount <= 0) {
+      setError('Valor inválido');
+      return;
+    }
 
-    addTransaction({
-      description,
-      amount: numericAmount,
-      type, // 'income' or 'expense'
-      category: category || 'Geral',
-      date: date,
-    });
+    if (numericAmount > 1000000000) {
+      setError('Valor muito alto');
+      return;
+    }
 
-    onBack();
+    // SECURITY: Sanitize description
+    const sanitizedDescription = sanitizeInput(description);
+    if (!sanitizedDescription || sanitizedDescription.length === 0) {
+      setError('Descrição inválida');
+      return;
+    }
+
+    try {
+      await addTransaction({
+        description: sanitizedDescription,
+        amount: numericAmount,
+        type,
+        category: category || 'Geral',
+        date: date,
+      });
+
+      onBack();
+    } catch (err: any) {
+      setError(err.message || 'Erro ao salvar transação');
+    }
   };
 
   // Date Logic
@@ -193,6 +217,13 @@ export const NewTransactionScreen: React.FC<NewTransactionProps> = ({ onBack }) 
                 />
               </div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               {/* Category Dropdown (Simple Text Input for now or Select) */}

@@ -13,12 +13,18 @@ export const LoginScreen: React.FC<LoginProps> = ({ onNavigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [saveInfo, setSaveInfo] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
     if (email && password) {
-      // In a real app, saveInfo would trigger persistent storage logic
-      login(email, password);
+      try {
+        await login(email, password);
+      } catch (err: any) {
+        setError(err.message || 'Erro ao fazer login');
+      }
     }
   };
 
@@ -127,6 +133,13 @@ export const LoginScreen: React.FC<LoginProps> = ({ onNavigate }) => {
               </label>
               <button type="button" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">Esqueceu a senha?</button>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
 
             <button
               type="submit"
